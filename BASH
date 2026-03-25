@@ -1,0 +1,37 @@
+    BASH COMMANDS
+
+help - internally defined bash commands 
+man [command] - command manual
+lspci - list all PCI devices (hardware connected via PCI bus like GPU, network card, etc.) (Peripheral Component Interconnect)
+rfkill list - check whether wireless devices (like Wi-Fi or Bluetooth) are blocked or enabled.
+grep -i 
+ip a - protocol (IP or IPv6) address on a device.
+sudo dmesg - print or control the kernel ring buffer
+exiftool -b -JpgFromRaw -w jpg -ext CR3 .  // creates jpg files from cannon raw files
+rm -r - delete a folder and everything inside it
+sed - stream editor
+tail
+head
+chmod 644 [file]   (r=4, w=2, x=1)
+chown - change ownership
+
+
+    System monitoring
+ps - process status
+top - display linux tasks
+df- disk space
+du - directory usage
+free - free space
+
+    Networking
+ping -send echo request to host
+curl - used to transfer data from or to a server using various protocols like HTTP, HTTPS, FTP, and more.
+wget - download files from the web
+ssh
+scp - transer files between systems
+
+
+
+    BASH SHORTCUTS
+
+ctr + r - reverse i search. (ctrl+r to go back in history)
