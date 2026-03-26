@@ -32,6 +32,7 @@ scp - transer files between systems
 
 
 
+
     BASH SHORTCUTS
 
 ctr + r - reverse i search. (ctrl+r to go back in history)
