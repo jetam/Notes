@@ -1,5 +1,15 @@
     BASH COMMANDS
 
+launch terminal: super + t
+new tab: shift + ctrl + t
+zoom in:
+zoom out: ctrl + +
+
+left tab: ctrl + shift + page up
+right tab: ctrl + shift + page down
+previous: ctrl + page up
+next: ctrl + page down
+
 help - internally defined bash commands 
 man [command] - command manual
 lspci - list all PCI devices (hardware connected via PCI bus like GPU, network card, etc.) (Peripheral Component Interconnect)
