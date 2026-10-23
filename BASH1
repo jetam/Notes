@@ -52,7 +52,7 @@ https://tldr.sh/   (or: sudo apt install tldr)
 
 
 ================================================================================
- 2. TERMINAL (GNOME TERMINAL) SHORTCUTS
+ 2. TERMINAL (GNOME) SHORTCUTS
 ================================================================================
 
 super + t                  launch terminal (custom shortcut; default on Ubuntu is ctrl + alt + t)
@@ -416,7 +416,7 @@ rfkill list
 
 sudo dmesg
     Prints or controls the kernel ring buffer - kernel messages about hardware,
-    drivers, USB plug-ins, errors. Great for "why doesn't my device work".
+    drivers, USB plug-ins, errors.
     $ sudo dmesg -T | tail -30             # -T human-readable timestamps
     $ sudo dmesg -w                        # follow live (then plug in a device)
     $ sudo dmesg | grep -i usb
@@ -500,9 +500,9 @@ watch
     $ watch -n 1 nvidia-smi
 
 lsof
-    (list open files) Powerful Linux/Unix utility to identify which processes
+    (list open files) Linux/Unix utility to identify which processes
     are using specific files, directories, or network ports. Because
-    "everything is a file" in Unix-like systems, lsof can also track network
+    everything is a file in Unix-like systems, lsof can also track network
     sockets, devices, and pipes.
     $ lsof /var/log/syslog                 # who has this file open
     $ lsof -u matej                        # all files opened by a user
@@ -659,18 +659,6 @@ python3 -m http.server
     $ sudo tcpdump -n -c 100 -i eth0       # -n no DNS resolve, -c stop after 100
     $ sudo tcpdump -i any -w capture.pcap  # save to file -> open in Wireshark
 
-    WIRESHARK
-    GUI packet analyzer - same as tcpdump but with deep protocol decoding,
-    filtering and "Follow TCP stream".
-    $ sudo apt install wireshark           # say "yes" to non-root capture
-    $ sudo usermod -aG wireshark $USER     # then log out/in
-    $ wireshark capture.pcap               # open a file captured by tcpdump
-    $ tshark -i lo -f "tcp port 8443"      # CLI version of wireshark
-    Display filter examples (typed into the filter bar):
-        http                    ip.addr == 192.168.1.5
-        tcp.port == 8443        http.request.method == "POST"
-        dns                     tcp.flags.syn == 1
-
 
 ================================================================================
  16. ARCHIVES & COMPRESSION
@@ -731,7 +719,7 @@ git remote set-url origin git@github.com:jetam/FileViewer.git
     $ git remote -v                        # check current remote URLs first
     $ git remote set-url origin git@github.com:jetam/FileViewer.git
 
-Everyday
+Most used
     $ git status                           # what changed
     $ git add -p                           # stage changes chunk by chunk
     $ git commit -m "message"
@@ -1004,111 +992,3 @@ Backup & restore
 Service
     $ sudo systemctl status postgresql
 
-
-================================================================================
- 23. BASH SCRIPTING
-================================================================================
-
-    Important syntax
-
-Shebang + strict mode (top of every script)
-    #!/usr/bin/env bash
-    set -euo pipefail      # exit on error, error on unset vars, fail on pipe errors
-
-Variables
-    name="matej"           # NO spaces around =
-    echo "Hello $name"     # always quote variables: "$var"
-    echo "${name}_backup"  # braces when text follows
-    readonly PI=3.14
-    export DB_HOST=localhost   # make it visible to child processes
-
-Arguments
-    $0 script name, $1 $2 ... arguments, $# number of args,
-    "$@" all args (quoted, safe), $? exit code of last command, $$ PID of script
-    $ ./deploy.sh prod      # inside: env="$1"
-
-Default values
-    port="${1:-8080}"      # use $1, or 8080 if empty
-
-If / tests
-    if [[ -f "$file" ]]; then
-        echo "file exists"
-    elif [[ -d "$file" ]]; then
-        echo "is a directory"
-    else
-        echo "not found"
-    fi
-    # -f file, -d dir, -e exists, -z empty string, -n non-empty,
-    # == != strings,  -eq -ne -lt -gt -le -ge numbers
-    [[ "$a" == "yes" && $n -gt 5 ]] && echo ok
-
-Loops
-    for f in *.txt; do echo "$f"; done
-    for i in {1..10}; do echo "$i"; done
-    for ((i=0; i<5; i++)); do echo "$i"; done
-    while read -r line; do echo "$line"; done < file.txt
-    while true; do date; sleep 5; done
-
-Case
-    case "$1" in
-        start) echo "starting" ;;
-        stop)  echo "stopping" ;;
-        *)     echo "usage: $0 {start|stop}"; exit 1 ;;
-    esac
-
-Functions
-    greet() {
-        local who="$1"         # local = variable only inside the function
-        echo "Hi $who"
-        return 0
-    }
-    greet "matej"
-
-Arrays
-    arr=(one two three)
-    echo "${arr[0]}"           # first element
-    echo "${arr[@]}"           # all elements
-    echo "${#arr[@]}"          # length
-    arr+=(four)                # append
-
-Arithmetic
-    echo $(( 5 + 3 * 2 ))
-    ((count++))
-
-String tricks
-    ${#str}                    # length
-    ${str:0:5}                 # substring
-    ${file%.txt}               # remove suffix   (photo.txt -> photo)
-    ${path##*/}                # basename        (/a/b/c.txt -> c.txt)
-    ${str/foo/bar}             # replace first match
-
-Exit codes & chaining
-    cmd1 && cmd2               # run cmd2 only if cmd1 succeeded
-    cmd1 || cmd2               # run cmd2 only if cmd1 failed
-    exit 1                     # end script with error
-
-Read user input
-    read -rp "Your name: " name
-
-Here-doc (multi-line text)
-    cat <<EOF > config.txt
-    host=$DB_HOST
-    port=5432
-    EOF
-
-Cleanup on exit
-    trap 'rm -f /tmp/mytmp' EXIT
-
-Aliases (put in ~/.bashrc, then `source ~/.bashrc`)
-    alias ll='ls -alF'
-    alias k='kubectl'
-    alias gs='git status'
-
-Debugging scripts
-    $ bash -x script.sh        # print every command as it runs
-    $ shellcheck script.sh     # lint for common bugs (sudo apt install shellcheck)
-
-Cron (run scripts on a schedule)
-    $ crontab -e
-    # min hour day month weekday  command
-    0 2 * * *  /home/matej/backup.sh   # every day at 02:00
