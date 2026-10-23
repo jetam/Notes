@@ -1,0 +1,1114 @@
+================================================================================
+                                BASH COMMANDS
+================================================================================
+
+Format of every entry:
+
+    command
+        What it does (description).
+        $ example usage                       # what the example does
+
+Contents
+     1. Resources
+     2. Terminal (GNOME Terminal) shortcuts
+     3. Bash shortcuts & history
+     4. Python virtual environments & `source`
+     5. Getting help / locating commands
+     6. Files & directories
+     7. Permissions & ownership
+     8. Viewing & processing text
+     9. Searching (grep / find)
+    10. Hardware & system info
+    11. Processes & system monitoring
+    12. Disk & memory
+    13. Services & logs (systemd)
+    14. Networking
+    15. Packet capture (tcpdump / Wireshark)
+    16. Archives & compression
+    17. Package management (apt)
+    18. Media / photos
+    19. Git
+    20. Docker
+    21. Kubernetes (kubectl)
+    22. Postgres (psql)
+    23. Bash scripting
+
+
+================================================================================
+ 1. RESOURCES
+================================================================================
+
+https://command-not-found.com/
+    Tells you which package provides a command and how to install it on every
+    distro (apt, dnf, pacman, brew, docker...).
+    e.g. https://command-not-found.com/tcpdump
+
+https://explainshell.com/
+    Paste any command line and it explains every flag/argument.
+
+https://tldr.sh/   (or: sudo apt install tldr)
+    Short, example-driven man pages.
+    $ tldr tar
+
+
+================================================================================
+ 2. TERMINAL (GNOME TERMINAL) SHORTCUTS
+================================================================================
+
+super + t                  launch terminal (custom shortcut; default on Ubuntu is ctrl + alt + t)
+shift + ctrl + t           open a new tab
+shift + ctrl + n           open a new window
+shift + ctrl + w           close current tab
+ctrl + shift + c / v       copy / paste inside the terminal (ctrl+c is SIGINT!)
+
+zoom in:                   ctrl + +   (ctrl + shift + =)
+zoom out:                  ctrl + -
+reset zoom:                ctrl + 0
+
+left tab:                  ctrl + shift + page up      (move current tab to the left)
+right tab:                 ctrl + shift + page down    (move current tab to the right)
+previous tab:              ctrl + page up
+next tab:                  ctrl + page down
+jump to tab N:             alt + 1..9
+
+ctrl + l                   same as the `clear` command (clears the screen, keeps the line you typed)
+
+
+================================================================================
+ 3. BASH SHORTCUTS & HISTORY
+================================================================================
+
+ctrl + r
+    Reverse-i-search: type part of a previous command to search history.
+    Press ctrl + r again to go further back, Enter to run, ctrl + g / Esc to cancel.
+
+ctrl + c        interrupt (kill) the running foreground command (SIGINT)
+ctrl + z        suspend the foreground command (resume it with `fg` or `bg`)
+ctrl + d        end of input / logout of the shell (when the line is empty)
+ctrl + a        move cursor to the start of the line
+ctrl + e        move cursor to the end of the line
+alt + b / f     move one word back / forward
+ctrl + w        delete the word before the cursor
+ctrl + u        delete from cursor to start of line
+ctrl + k        delete from cursor to end of line
+ctrl + y        paste ("yank") what was last deleted with ctrl+w/u/k
+tab tab         autocomplete / show all completions
+
+history
+    Prints the numbered command history.
+    $ history | grep docker                # find docker commands you ran before
+
+!!              repeat the last command          $ sudo !!    # rerun last command with sudo
+!$              last argument of previous cmd    $ mkdir project && cd !$
+!n              run command number n from history  $ !512
+cd -            go back to the previous directory
+
+
+================================================================================
+ 4. PYTHON VIRTUAL ENVIRONMENTS & `source`
+================================================================================
+
+python3 -m venv .venv
+    Creates a virtual environment in the folder .venv (isolated python + pip).
+    $ python3 -m venv .venv
+
+source .venv/bin/activate
+    Activates the virtual environment: `python` and `pip` now point to .venv.
+    Your prompt usually shows (.venv).
+    $ source .venv/bin/activate && pip install -r requirements.txt
+
+deactivate
+    Leaves the active virtual environment (back to the system python).
+    $ deactivate
+
+source  (same as: . file)
+    - Runs a script in the CURRENT shell environment instead of starting a new
+      one (a new shell = `bash script.sh` / `./script.sh`).
+    - Executes commands from a file in the current shell, so variables,
+      functions, aliases and `cd` from that file stay in effect afterwards.
+    $ source ~/.bashrc                     # reload bashrc after editing it
+    $ source .env                          # load variables from a .env file
+
+
+================================================================================
+ 5. GETTING HELP / LOCATING COMMANDS
+================================================================================
+
+help
+    Help for bash BUILT-IN commands (cd, export, source, for, if...), which have
+    no own man page.
+    $ help cd
+
+man [command]
+    Full command manual. Inside: / to search, n next match, q quit.
+    $ man find
+    $ man -k partition                     # search all man pages for a keyword
+
+[command] --help
+    Most programs print a short usage summary.
+    $ grep --help | less
+
+which
+    Locates a command (for PROGRAMS / EXECUTABLES). Searches the folders in
+    $PATH in order and prints the first match - i.e. the one that will run.
+    $ which python3                        # -> /usr/bin/python3
+    $ which -a python                      # show ALL matches in $PATH
+
+type
+    Like which, but also knows about aliases, functions and builtins.
+    $ type ll                              # ll is aliased to `ls -alF'
+
+echo $PATH
+    Shows the list of folders searched for executables (separated by :).
+    $ export PATH="$HOME/.local/bin:$PATH" # prepend a folder to PATH
+
+
+================================================================================
+ 6. FILES & DIRECTORIES
+================================================================================
+
+ls
+    Lists directory contents.
+    $ ls -lah                              # long format, all (hidden) files, human sizes
+    $ ls -lt                               # sort by modification time, newest first
+
+cd / pwd
+    Change directory / print working directory.
+    $ cd ~/code/Notes ; pwd
+
+mkdir
+    Create directories.
+    $ mkdir -p src/utils/tests             # -p creates parent dirs, no error if it exists
+
+touch
+    Creates an empty file, or updates the timestamp of an existing file.
+    $ touch notes.txt
+
+cp
+    Copy files / directories.
+    $ cp file.txt backup.txt
+    $ cp -r project/ project_backup/       # -r recursive (needed for folders)
+
+mv
+    Move or rename files.
+    $ mv old_name.txt new_name.txt
+    $ mv *.jpg ~/Pictures/
+
+rm
+    Delete files. There is no trash - be careful.
+    $ rm file.txt
+    $ rm -i *.log                          # ask before every delete
+
+rm -r
+    Deletes a folder and everything inside it (recursive).
+    $ rm -r build/
+    $ rm -rf node_modules/                 # -f: force, no prompts, ignore missing
+
+rmdir
+    Deletes an EMPTY directory only (safe).
+    $ rmdir empty_folder
+
+symlinks (ln -s)
+    A symbolic link is a pointer/shortcut to another file or folder. Deleting
+    the link does not delete the target; if the target is moved the link breaks.
+    `ln` without -s makes a hard link (another name for the same data).
+    $ ln -s /path/to/target linkname       # create symlink "linkname" -> target
+    $ ln -sf ~/dotfiles/.bashrc ~/.bashrc  # -f overwrite an existing link
+    $ ls -l linkname                       # shows: linkname -> /path/to/target
+    $ readlink -f linkname                 # print the final resolved path
+    $ find . -xtype l                      # find broken symlinks
+
+tree
+    Shows a directory as a tree (sudo apt install tree).
+    $ tree -L 2 -I node_modules            # 2 levels deep, ignore node_modules
+
+file
+    Tells you what kind of file something is (by content, not extension).
+    $ file mystery.bin
+
+stat
+    Detailed file info: size, permissions, owner, access/modify times.
+    $ stat file.txt
+
+
+================================================================================
+ 7. PERMISSIONS & OWNERSHIP
+================================================================================
+
+    Permission string:  -rwxr-xr--   = type | owner | group | others
+    Numbers:            r=4, w=2, x=1  -> add them per group (7=rwx, 6=rw-, 5=r-x, 4=r--)
+
+chmod 644 [file]
+    Sets permissions numerically: owner rw (6), group r (4), others r (4).
+    Typical for normal files. 755 is typical for scripts/folders, 600 for
+    private keys.
+    $ chmod 644 index.html
+    $ chmod 600 ~/.ssh/id_ed25519
+    $ chmod -R 755 public/                 # -R recursive
+
+chmod +x
+    Makes a file executable (for everyone). u+x = only owner, g-w = remove
+    group write, etc.
+    $ chmod +x deploy.sh && ./deploy.sh
+
+chown
+    Changes the owner (and optionally group) of files.
+    $ sudo chown matej file.txt
+    $ sudo chown -R matej:matej /var/www/app    # owner:group, recursive
+
+sudo
+    Run a command as root (administrator).
+    $ sudo apt update
+    $ sudo -i                              # open a root shell (exit with `exit`)
+
+
+================================================================================
+ 8. VIEWING & PROCESSING TEXT
+================================================================================
+
+cat
+    Prints the contents of a file (conCATenates files to stdout).
+    $ cat config.yaml
+    $ cat part1.txt part2.txt > whole.txt  # join files
+    $ cat -n script.sh                     # with line numbers
+
+less
+    Scrollable file viewer (doesn't load the whole file). / search, q quit,
+    G end, g start, F follow like tail -f.
+    $ less /var/log/syslog
+
+head
+    Prints the start of a file (first 10 lines by default).
+    $ head -n 20 data.csv
+
+tail
+    Prints the end of a file (last 10 lines by default).
+    $ tail -n 50 app.log
+    $ tail -f app.log                      # follow: keep printing new lines (logs!)
+
+sort
+    Sorts lines alphabetically (or numerically with -n).
+    $ sort names.txt
+    $ sort -n -r numbers.txt               # numeric, reversed
+    $ sort -t, -k2 data.csv                # sort CSV by 2nd column
+
+uniq
+    Removes ADJACENT duplicate lines - so almost always use after `sort`.
+    $ sort names.txt | uniq
+    $ sort access.log | uniq -c | sort -rn | head    # count occurrences, top 10
+
+wc
+    Counts lines, words, bytes.
+    $ wc -l *.py                           # number of lines per file
+
+cut
+    Extracts columns/fields from each line.
+    $ cut -d, -f1,3 data.csv               # fields 1 and 3 from a CSV
+    $ cut -d: -f1 /etc/passwd              # list of user names
+
+tr
+    Translates or deletes characters.
+    $ echo "hello" | tr a-z A-Z            # -> HELLO
+    $ tr -d '\r' < win.txt > unix.txt      # remove Windows line endings
+
+sed
+    Stream editor - performs basic text transformations on an input stream,
+    line by line (sed = line editor). Most used for search & replace.
+    $ sed 's/foo/bar/g' file.txt           # print with every foo replaced by bar
+    $ sed -i 's/localhost/127.0.0.1/g' config.ini   # -i edit file in place
+    $ sed -n '10,20p' file.txt             # print only lines 10-20
+    $ sed '/^#/d' file.txt                 # delete comment lines
+    # rename files (change names of files):
+    $ for f in *.jpeg; do mv "$f" "$(echo "$f" | sed 's/\.jpeg$/.jpg/')"; done
+
+awk
+    Like sed but for parsing: splits each line into fields ($1, $2, ... $NF)
+    and is a small programming language for column-based data.
+    $ awk '{print $1}' access.log          # first column (space separated)
+    $ awk -F, '{print $2}' data.csv        # -F sets separator
+    $ awk '$3 > 100 {print $1, $3}' data   # filter rows by condition
+    $ awk '{sum += $5} END {print sum}' f  # sum a column
+
+xargs
+    Turns input lines into arguments for another command.
+    $ find . -name "*.tmp" | xargs rm
+    $ cat urls.txt | xargs -n1 -P4 wget    # 4 parallel downloads
+
+tee
+    Writes input to a file AND to the screen.
+    $ make 2>&1 | tee build.log
+    $ echo "line" | sudo tee -a /etc/hosts # append to a root-owned file
+
+diff
+    Shows differences between two files.
+    $ diff -u old.txt new.txt
+    $ diff -r dir1/ dir2/                  # compare directories
+
+Redirection & pipes
+    >   write stdout to file (overwrite)        $ ls > files.txt
+    >>  append stdout to file                   $ echo "x" >> log.txt
+    2>  redirect stderr                         $ cmd 2> errors.txt
+    &>  redirect stdout + stderr                $ cmd &> all.txt
+    |   pipe stdout into next command           $ ps aux | grep python
+    /dev/null  discard output                   $ cmd > /dev/null 2>&1
+
+
+================================================================================
+ 9. SEARCHING (grep / find)
+================================================================================
+
+grep
+    Searches for lines matching a pattern in files. Takes in a regular expression.
+    $ grep "error" app.log
+    $ grep -n "TODO" *.py                  # -n show line numbers
+    $ grep -v "DEBUG" app.log              # -v invert: lines NOT matching
+    $ grep -E "error|warn" app.log         # -E extended regex
+    $ grep -c "404" access.log             # count matching lines
+    $ grep -A3 -B2 "Exception" app.log     # 3 lines After, 2 lines Before match
+
+grep -i -r
+    -i case insensitive, -r recursive through all files in a directory.
+    $ grep -ir "password" ./config
+    $ grep -rl "import requests" .         # -l only print file names
+    $ grep -rn --include="*.js" "fetch(" src/
+
+find
+    Finds files / directories by name, type, size, time... and can run
+    commands on them.
+    $ find . -type f -name "filename"      # files with exact name, from current dir
+    $ find . -type f -iname "*.jpg"        # case-insensitive wildcard
+    $ find . -type d -name node_modules    # directories
+    $ find . -size +100M                   # bigger than 100 MB
+    $ find . -mtime -1                     # modified in the last 24h
+    $ find . -name "*.pyc" -delete         # delete matches
+    $ find . -name "*.sh" -exec chmod +x {} \;   # run command on each match
+
+locate
+    Very fast file search using a prebuilt database (sudo apt install plocate;
+    refresh db with `sudo updatedb`).
+    $ locate nginx.conf
+
+
+================================================================================
+ 10. HARDWARE & SYSTEM INFO
+================================================================================
+
+lspci
+    Lists all PCI devices (hardware connected via the PCI bus like GPU, network
+    card, etc.). PCI = Peripheral Component Interconnect.
+    $ lspci | grep -i vga                  # which GPU do I have
+    $ lspci -k                             # also show kernel driver in use
+
+lsusb
+    Lists USB devices.
+    $ lsusb
+
+lsblk
+    Lists block devices (disks, partitions, USB sticks) and where they're mounted.
+    $ lsblk -f                             # also filesystem type & UUID
+
+rfkill list
+    Checks whether wireless devices (like Wi-Fi or Bluetooth) are blocked
+    (soft = by software/switch in settings, hard = physical switch) or enabled.
+    $ rfkill list
+    $ sudo rfkill unblock wifi             # unblock wi-fi
+    $ sudo rfkill unblock all
+
+sudo dmesg
+    Prints or controls the kernel ring buffer - kernel messages about hardware,
+    drivers, USB plug-ins, errors. Great for "why doesn't my device work".
+    $ sudo dmesg -T | tail -30             # -T human-readable timestamps
+    $ sudo dmesg -w                        # follow live (then plug in a device)
+    $ sudo dmesg | grep -i usb
+
+uname
+    Kernel / OS info.
+    $ uname -a
+
+lsb_release -a  /  cat /etc/os-release
+    Which distro and version you're running.
+
+lscpu / nproc
+    CPU info / number of CPU cores.
+    $ nproc
+
+uptime
+    How long the system is running + load average.
+    $ uptime
+
+
+================================================================================
+ 11. PROCESSES & SYSTEM MONITORING
+================================================================================
+
+$(command)
+    Command substitution: runs command and captures its output so it can be
+    used as a value.
+    $ echo "Today is $(date +%F)"
+    $ kill $(lsof -t -i:3000)              # kill whatever runs on port 3000
+
+&
+    Runs a command in the background, so the terminal is free immediately.
+    $ python3 -m http.server 8000 &
+    $ jobs                                 # list background jobs of this shell
+    $ fg %1                                # bring job 1 to the foreground
+    $ bg                                   # resume a ctrl+z-suspended job in background
+
+nohup
+    Keep a command running after you close the terminal / ssh session.
+    $ nohup ./long_task.sh > task.log 2>&1 &
+
+ps
+    Process status - snapshot of running processes.
+    $ ps                                   # processes of the current shell
+    $ ps aux                               # ALL processes of all users, with CPU/MEM
+    $ ps aux | grep java
+
+ps -a
+    For all processes attached to a terminal (not only this shell).
+    $ ps -a
+
+ps -p [pid] -f
+    Check a specific process by its PID; -f = full format (shows the full
+    command line, parent PID, start time).
+    $ ps -p 22977 -f
+
+pgrep / pkill
+    Find / kill processes by name.
+    $ pgrep -a node                        # list PIDs + command lines matching "node"
+    $ pkill -f "python app.py"
+
+kill
+    Sends a signal to a process (default SIGTERM = ask nicely to stop).
+    $ kill 22977
+    $ kill -9 22977                        # SIGKILL - force kill, can't be ignored
+    $ killall firefox
+
+top
+    Displays Linux tasks live (CPU, memory, processes). Inside: q quit,
+    M sort by memory, P sort by CPU, k kill.
+    $ top
+    $ top -p 22977                         # monitor only one PID
+
+htop
+    Nicer, colorful, interactive top (sudo apt install htop).
+    $ htop
+
+watch
+    Re-runs a command every N seconds and shows the output full-screen.
+    $ watch -n 2 'df -h'
+    $ watch -n 1 nvidia-smi
+
+lsof
+    (list open files) Powerful Linux/Unix utility to identify which processes
+    are using specific files, directories, or network ports. Because
+    "everything is a file" in Unix-like systems, lsof can also track network
+    sockets, devices, and pipes.
+    $ lsof /var/log/syslog                 # who has this file open
+    $ lsof -u matej                        # all files opened by a user
+
+lsof -i -P -n | grep LISTEN
+    See which ports servers are listening on. -i network files, -P show port
+    numbers (not names), -n don't resolve hostnames (faster).
+    $ sudo lsof -i -P -n | grep LISTEN
+
+lsof -t -i:3000
+    Returns only the PID (-t terse) of the service on port 3000.
+    $ lsof -t -i:3000
+    $ kill $(lsof -t -i:3000)              # free up port 3000
+
+
+================================================================================
+ 12. DISK & MEMORY
+================================================================================
+
+df
+    Disk space (free/used) per mounted filesystem.
+    $ df -h                                # -h human readable (G, M)
+
+du
+    Directory usage - how much space files/folders take.
+    $ du -sh ~/Downloads                   # -s summary total only
+    $ du -h --max-depth=1 . | sort -h      # size of each subfolder, sorted
+
+ncdu
+    Interactive disk-usage browser - best way to find what fills your disk
+    (sudo apt install ncdu).
+    $ ncdu ~
+
+free
+    Free and used memory (RAM and swap).
+    $ free -h
+
+mount / umount
+    Attach / detach a filesystem.
+    $ sudo mount /dev/sdb1 /mnt/usb
+    $ sudo umount /mnt/usb
+
+
+================================================================================
+ 13. SERVICES & LOGS (systemd)
+================================================================================
+
+systemctl
+    Controls systemd services (daemons).
+    $ systemctl status nginx
+    $ sudo systemctl start|stop|restart nginx
+    $ sudo systemctl enable --now postgresql   # start now and on every boot
+    $ systemctl list-units --type=service --state=running
+
+journalctl
+    Reads system/service logs collected by systemd.
+    $ journalctl -u nginx -f               # follow logs of one service
+    $ journalctl -b -p err                 # errors since last boot
+    $ journalctl --since "1 hour ago"
+
+
+================================================================================
+ 14. NETWORKING
+================================================================================
+
+ip a
+    Shows the protocol (IPv4 or IPv6) addresses on every network device
+    (short for `ip address`).
+    $ ip a
+    $ ip -br a                             # brief, one line per interface
+    $ ip r                                 # routing table / default gateway
+
+ifconfig
+    Old (deprecated) tool for showing/configuring network interfaces - same info
+    as `ip a`. Part of net-tools (sudo apt install net-tools).
+    $ ifconfig
+    $ ifconfig wlp2s0
+
+ping
+    Sends ICMP echo requests to a host - checks if it's reachable and how fast.
+    $ ping google.com
+    $ ping -c 4 8.8.8.8                    # only 4 packets
+
+curl
+    Transfers data from or to a server using various protocols like HTTP,
+    HTTPS, FTP, and more. The go-to tool for testing APIs.
+    $ curl https://example.com
+    $ curl -I https://example.com          # only response headers
+    $ curl -v http://localhost:8080/health # verbose: see request/response
+    $ curl -X POST -H "Content-Type: application/json" \
+           -d '{"name":"matej"}' http://localhost:3000/api/users
+    $ curl -L -o file.zip https://.../file.zip   # follow redirects, save to file
+    $ curl -k https://localhost:8443       # ignore self-signed cert
+
+wget
+    Downloads files from the web (good for big/recursive downloads, resumes).
+    $ wget https://example.com/file.iso
+    $ wget -c https://example.com/file.iso # continue an interrupted download
+
+ssh
+    Secure shell - log in to / run commands on a remote machine.
+    $ ssh user@192.168.1.10
+    $ ssh -p 2222 user@host                # custom port
+    $ ssh -i ~/.ssh/mykey user@host        # specific key
+    $ ssh user@host 'df -h'                # run one command remotely
+    $ ssh -L 5432:localhost:5432 user@host # tunnel: remote port 5432 -> local 5432
+    $ ssh-keygen -t ed25519 -C "jetam.puc@gmail.com"   # create a key pair
+    $ ssh-copy-id user@host                # install your key -> no more passwords
+
+scp
+    Transfers (copies) files between systems over ssh.
+    $ scp file.txt user@host:/home/user/
+    $ scp user@host:/var/log/app.log .     # download
+    $ scp -r folder/ user@host:~/          # whole folder
+
+rsync
+    Smarter copy (local or over ssh): only transfers what changed, can resume.
+    $ rsync -avz --progress src/ user@host:~/backup/src/
+    $ rsync -av --delete ~/Documents/ /mnt/usb/Documents/  # mirror
+
+ss
+    Modern netstat - shows sockets / listening ports.
+    $ ss -tulpn                            # tcp+udp, listening, with process, numeric
+
+dig / nslookup
+    DNS lookups.
+    $ dig example.com +short
+    $ nslookup example.com
+
+nc (netcat)
+    Read/write raw TCP/UDP connections - test if a port is open.
+    $ nc -zv localhost 5432                # is port 5432 open?
+
+python3 -m http.server
+    Instantly serves the current folder over HTTP (sharing files on LAN).
+    $ python3 -m http.server 8000
+
+
+================================================================================
+ 15. PACKET CAPTURE (tcpdump / Wireshark)
+================================================================================
+
+    TCPDUMP
+    Command-line packet sniffer: prints packets passing through an interface.
+
+    sudo tcpdump -i lo -A 'tcp port 8443'
+        -i -> interface, lo -> loopback address: 127.0.0.1,
+        -A displays packet contents as ASCII.
+        Example: watch the traffic of a local server on port 8443.
+
+    $ sudo tcpdump -D                      # list available interfaces
+    $ sudo tcpdump -i any port 80          # all interfaces, HTTP
+    $ sudo tcpdump -i wlp2s0 host 192.168.1.5   # traffic to/from one host
+    $ sudo tcpdump -n -c 100 -i eth0       # -n no DNS resolve, -c stop after 100
+    $ sudo tcpdump -i any -w capture.pcap  # save to file -> open in Wireshark
+
+    WIRESHARK
+    GUI packet analyzer - same as tcpdump but with deep protocol decoding,
+    filtering and "Follow TCP stream".
+    $ sudo apt install wireshark           # say "yes" to non-root capture
+    $ sudo usermod -aG wireshark $USER     # then log out/in
+    $ wireshark capture.pcap               # open a file captured by tcpdump
+    $ tshark -i lo -f "tcp port 8443"      # CLI version of wireshark
+    Display filter examples (typed into the filter bar):
+        http                    ip.addr == 192.168.1.5
+        tcp.port == 8443        http.request.method == "POST"
+        dns                     tcp.flags.syn == 1
+
+
+================================================================================
+ 16. ARCHIVES & COMPRESSION
+================================================================================
+
+tar
+    Packs/unpacks archives. c=create, x=extract, t=list, z=gzip, f=file, v=verbose.
+    $ tar -czvf backup.tar.gz folder/      # create .tar.gz
+    $ tar -xzvf backup.tar.gz              # extract
+    $ tar -xf archive.tar.xz -C /tmp/out   # extract into a directory
+    $ tar -tf backup.tar.gz                # list contents
+
+zip / unzip
+    $ zip -r project.zip project/
+    $ unzip project.zip -d project/
+
+
+================================================================================
+ 17. PACKAGE MANAGEMENT (apt)
+================================================================================
+
+    $ sudo apt update                      # refresh package lists
+    $ sudo apt upgrade                     # upgrade installed packages
+    $ sudo apt install htop                # install
+    $ sudo apt remove htop                 # uninstall (purge = also config)
+    $ apt search wireshark                 # search
+    $ apt list --installed | grep python
+    $ sudo apt autoremove                  # remove unused dependencies
+    $ sudo dpkg -i package.deb             # install a downloaded .deb
+
+
+================================================================================
+ 18. MEDIA / PHOTOS
+================================================================================
+
+exiftool -b -JpgFromRaw -w jpg -ext CR3 .
+    Creates jpg files from Canon raw (.CR3) files by extracting the embedded
+    full-size JPEG preview. -b binary output, -JpgFromRaw the tag to extract,
+    -w jpg write each to <name>.jpg, -ext CR3 only process CR3 files,
+    . = current directory.
+    $ exiftool -b -JpgFromRaw -w jpg -ext CR3 .
+    $ exiftool IMG_0001.CR3                # show all metadata (camera, lens, ISO...)
+    $ exiftool -all= photo.jpg             # strip all metadata (privacy)
+
+ffmpeg
+    Converts audio/video.
+    $ ffmpeg -i input.mov -c:v libx264 output.mp4
+    $ ffmpeg -i video.mp4 -vn audio.mp3    # extract audio
+
+
+================================================================================
+ 19. GIT
+================================================================================
+
+git remote set-url origin git@github.com:jetam/FileViewer.git
+    Changes the remote from https to ssh -> stops asking you for username and
+    password and uses your ssh key instead.
+    $ git remote -v                        # check current remote URLs first
+    $ git remote set-url origin git@github.com:jetam/FileViewer.git
+
+Everyday
+    $ git status                           # what changed
+    $ git add -p                           # stage changes chunk by chunk
+    $ git commit -m "message"
+    $ git commit --amend                   # fix the last commit (before pushing)
+    $ git push / git pull --rebase
+    $ git log --oneline --graph --all      # compact history tree
+    $ git diff / git diff --staged         # unstaged / staged changes
+
+Branches
+    $ git switch -c feature/login          # create + switch to new branch
+    $ git switch master
+    $ git branch -d feature/login          # delete local branch
+    $ git merge feature/login
+    $ git rebase master                    # replay current branch on master
+
+Undo
+    $ git restore file.txt                 # discard local changes in a file
+    $ git restore --staged file.txt        # unstage
+    $ git reset --soft HEAD~1              # undo last commit, keep changes
+    $ git revert <hash>                    # new commit that undoes <hash>
+    $ git stash / git stash pop            # park changes temporarily
+
+Inspect
+    $ git blame file.txt                   # who changed each line
+    $ git show <hash>                      # one commit's changes
+    $ git log -p -- path/file              # history of one file
+
+
+================================================================================
+ 20. DOCKER
+================================================================================
+
+    Images = templates (built from a Dockerfile). Containers = running instances of an image.
+
+docker images
+    Lists the images stored locally (name, tag, size).
+    $ docker images
+    $ docker images | grep myapp
+
+docker pull
+    Downloads an image from a registry (Docker Hub by default) without running it.
+    $ docker pull postgres:16              # download image
+
+docker build
+    Builds an image from a Dockerfile. -t gives it a name:tag, the last argument
+    is the build context (folder sent to the build).
+    $ docker build -t myapp:latest .       # build from Dockerfile in current dir
+    $ docker build -f docker/Dockerfile.dev -t myapp:dev .   # other Dockerfile
+
+docker rmi
+    Removes an image (fails if a container still uses it).
+    $ docker rmi myapp:latest              # remove image
+
+docker ps
+    Lists containers: their ID, image, status, and published ports.
+    $ docker ps                            # running containers
+    $ docker ps -a                         # all, including stopped
+
+docker run
+    Creates and starts a new container from an image.
+    -d detached (background), -p host:container port, -e env var,
+    --name container name, -it interactive terminal, --rm delete on exit,
+    -v host_path:container_path mount a folder/volume.
+    $ docker run -d --name db -p 5432:5432 -e POSTGRES_PASSWORD=secret postgres:16
+    $ docker run -it --rm ubuntu bash      # interactive throwaway container
+    $ docker run -v $(pwd):/app myapp      # mount current dir into container
+
+docker stop / docker start / docker restart
+    Stops (SIGTERM, then SIGKILL after 10s), starts again, or restarts an
+    existing container. Data inside the container is kept.
+    $ docker stop db / docker start db / docker restart db
+
+docker rm
+    Removes a stopped container (and its data unless it was in a volume).
+    $ docker rm db                         # remove a stopped container
+    $ docker rm -f db                      # stop + remove in one go
+
+docker logs
+    Shows what the container wrote to stdout/stderr.
+    $ docker logs -f db                    # follow container logs
+    $ docker logs --tail 100 db            # only the last 100 lines
+
+docker exec
+    Runs a command inside a RUNNING container.
+    $ docker exec -it db bash              # shell inside a running container (or sh)
+    $ docker exec -it db psql -U postgres  # run a program inside
+
+docker inspect
+    Full low-level details of a container/image as JSON.
+    $ docker inspect db                    # full config / IP / mounts as JSON
+    $ docker inspect -f '{{.NetworkSettings.IPAddress}}' db
+
+docker stats
+    Live resource usage per container (like top).
+    $ docker stats                         # live CPU / memory per container
+
+docker compose
+    Runs multi-container apps defined in docker-compose.yml (services,
+    ports, volumes, networks) with one command.
+    $ docker compose up -d                 # start everything in docker-compose.yml
+    $ docker compose down                  # stop + remove (add -v to delete volumes)
+    $ docker compose logs -f web
+    $ docker compose up -d --build         # rebuild images first
+    $ docker compose ps                    # status of the compose services
+
+docker system
+    Shows / cleans up the disk space used by Docker.
+    $ docker system df                     # how much space docker uses
+    $ docker system prune -a               # remove unused images/containers/networks
+
+
+================================================================================
+ 21. KUBERNETES (kubectl)
+================================================================================
+
+    Tip: alias k=kubectl   and enable completion:  source <(kubectl completion bash)
+
+Context / cluster
+kubectl config get-contexts
+    Lists all clusters/contexts in your kubeconfig (~/.kube/config); * = current.
+    $ kubectl config get-contexts
+
+kubectl config use-context
+    Switches to another cluster.
+    $ kubectl config use-context minikube
+
+kubectl config set-context --current --namespace
+    Sets the default namespace so you don't need -n every time.
+    $ kubectl config set-context --current --namespace=dev
+
+kubectl cluster-info
+    Shows the API server address - quick check that the cluster is reachable.
+    $ kubectl cluster-info
+
+Looking at resources
+kubectl get
+    Lists resources (pods, deployments, services, nodes, ns, configmaps...).
+    $ kubectl get pods                     # pods in the current namespace
+    $ kubectl get pods -A                  # all namespaces
+    $ kubectl get pods -o wide             # + node and pod IP
+    $ kubectl get pods -w                  # watch for changes
+    $ kubectl get deploy,svc,ingress -n dev
+    $ kubectl get pod mypod -o yaml        # full definition
+
+kubectl describe
+    Detailed info + EVENTS for a resource - first thing to check when a pod is
+    Pending / CrashLoopBackOff / ImagePullBackOff.
+    $ kubectl describe pod mypod-7d9f8c-xk2lp
+
+kubectl get events
+    Recent cluster events, sorted.
+    $ kubectl get events --sort-by=.metadata.creationTimestamp
+
+Debugging pods
+kubectl logs
+    Prints container logs.
+    $ kubectl logs mypod
+    $ kubectl logs -f deploy/myapp         # follow logs of a deployment's pod
+    $ kubectl logs mypod -c sidecar        # specific container in the pod
+    $ kubectl logs mypod --previous        # logs of the crashed previous run
+
+kubectl exec
+    Runs a command / opens a shell inside a container.
+    $ kubectl exec -it mypod -- bash       # (or sh if no bash in image)
+    $ kubectl exec mypod -- env
+
+kubectl port-forward
+    Forwards a local port to a pod/service - access it at localhost.
+    $ kubectl port-forward svc/myapp 8080:80   # localhost:8080 -> service port 80
+
+kubectl cp
+    Copies files to/from a pod.
+    $ kubectl cp mypod:/app/log.txt ./log.txt
+
+kubectl top
+    CPU/memory usage (needs metrics-server).
+    $ kubectl top pods
+    $ kubectl top nodes
+
+Creating / changing
+kubectl apply -f
+    Creates or updates resources from a YAML file or folder (declarative).
+    $ kubectl apply -f deployment.yaml
+    $ kubectl apply -f k8s/                # all files in a folder
+
+kubectl delete
+    Deletes resources.
+    $ kubectl delete -f deployment.yaml
+    $ kubectl delete pod mypod             # deployment will create a new one
+
+kubectl create (quick, imperative)
+    $ kubectl create namespace dev
+    $ kubectl create deployment nginx --image=nginx
+    $ kubectl create secret generic db-pass --from-literal=password=secret
+    $ kubectl create deployment web --image=nginx --dry-run=client -o yaml > web.yaml
+          # generate a YAML template without creating anything
+
+kubectl edit
+    Opens the live resource in your editor; saving applies the change.
+    $ kubectl edit deploy myapp
+
+Deployments
+kubectl scale
+    $ kubectl scale deploy myapp --replicas=3
+
+kubectl set image
+    $ kubectl set image deploy/myapp myapp=myrepo/myapp:1.2.0
+
+kubectl rollout
+    Status / history / undo / restart of deployments.
+    $ kubectl rollout status deploy/myapp
+    $ kubectl rollout history deploy/myapp
+    $ kubectl rollout undo deploy/myapp    # back to previous version
+    $ kubectl rollout restart deploy/myapp # restart all pods (e.g. new config)
+
+Misc
+    $ kubectl explain deployment.spec      # built-in docs for YAML fields
+    $ kubectl api-resources                # all resource types + short names
+    $ kubectl get secret db-pass -o jsonpath='{.data.password}' | base64 -d
+
+Local clusters
+    $ minikube start / minikube dashboard
+    $ kind create cluster
+
+
+================================================================================
+ 22. POSTGRES (psql)
+================================================================================
+
+psql --version
+    Shows the installed psql client version.
+    $ psql --version
+
+sudo -u postgres psql
+    Logs in as the default `postgres` superuser (runs psql as the linux user
+    postgres - uses peer authentication, no password needed).
+    $ sudo -u postgres psql
+
+psql -h -U -d
+    Connect to a specific host / user / database.
+    $ psql -h localhost -U matej -d mydb
+    $ psql "postgresql://matej:secret@localhost:5432/mydb"
+    $ psql -d mydb -c "SELECT count(*) FROM users;"   # run one query and exit
+    $ psql -d mydb -f schema.sql           # run a SQL file
+
+Meta-commands (inside psql)
+    \l          - list databases
+    \c mydb     - connect to database mydb
+    \dt         - list tables
+    \d users    - describe table users (columns, types, indexes)
+    \du         - list users (roles)
+    \dn         - list schemas
+    \x          - toggle expanded display (nice for wide rows)
+    \timing     - show how long each query takes
+    \i file.sql - run a SQL file
+    \?          - help for meta-commands, \h SELECT - help for SQL command
+    \q          - quit
+
+Users & databases (SQL inside psql)
+    CREATE USER matej WITH PASSWORD 'secret';
+    CREATE DATABASE mydb OWNER matej;
+    GRANT ALL PRIVILEGES ON DATABASE mydb TO matej;
+    ALTER USER matej WITH SUPERUSER;
+
+Backup & restore
+    $ pg_dump -U matej mydb > mydb.sql                 # dump to SQL
+    $ psql -U matej -d mydb < mydb.sql                 # restore
+    $ pg_dump -Fc mydb > mydb.dump ; pg_restore -d mydb mydb.dump   # custom format
+
+Service
+    $ sudo systemctl status postgresql
+
+
+================================================================================
+ 23. BASH SCRIPTING
+================================================================================
+
+    Important syntax
+
+Shebang + strict mode (top of every script)
+    #!/usr/bin/env bash
+    set -euo pipefail      # exit on error, error on unset vars, fail on pipe errors
+
+Variables
+    name="matej"           # NO spaces around =
+    echo "Hello $name"     # always quote variables: "$var"
+    echo "${name}_backup"  # braces when text follows
+    readonly PI=3.14
+    export DB_HOST=localhost   # make it visible to child processes
+
+Arguments
+    $0 script name, $1 $2 ... arguments, $# number of args,
+    "$@" all args (quoted, safe), $? exit code of last command, $$ PID of script
+    $ ./deploy.sh prod      # inside: env="$1"
+
+Default values
+    port="${1:-8080}"      # use $1, or 8080 if empty
+
+If / tests
+    if [[ -f "$file" ]]; then
+        echo "file exists"
+    elif [[ -d "$file" ]]; then
+        echo "is a directory"
+    else
+        echo "not found"
+    fi
+    # -f file, -d dir, -e exists, -z empty string, -n non-empty,
+    # == != strings,  -eq -ne -lt -gt -le -ge numbers
+    [[ "$a" == "yes" && $n -gt 5 ]] && echo ok
+
+Loops
+    for f in *.txt; do echo "$f"; done
+    for i in {1..10}; do echo "$i"; done
+    for ((i=0; i<5; i++)); do echo "$i"; done
+    while read -r line; do echo "$line"; done < file.txt
+    while true; do date; sleep 5; done
+
+Case
+    case "$1" in
+        start) echo "starting" ;;
+        stop)  echo "stopping" ;;
+        *)     echo "usage: $0 {start|stop}"; exit 1 ;;
+    esac
+
+Functions
+    greet() {
+        local who="$1"         # local = variable only inside the function
+        echo "Hi $who"
+        return 0
+    }
+    greet "matej"
+
+Arrays
+    arr=(one two three)
+    echo "${arr[0]}"           # first element
+    echo "${arr[@]}"           # all elements
+    echo "${#arr[@]}"          # length
+    arr+=(four)                # append
+
+Arithmetic
+    echo $(( 5 + 3 * 2 ))
+    ((count++))
+
+String tricks
+    ${#str}                    # length
+    ${str:0:5}                 # substring
+    ${file%.txt}               # remove suffix   (photo.txt -> photo)
+    ${path##*/}                # basename        (/a/b/c.txt -> c.txt)
+    ${str/foo/bar}             # replace first match
+
+Exit codes & chaining
+    cmd1 && cmd2               # run cmd2 only if cmd1 succeeded
+    cmd1 || cmd2               # run cmd2 only if cmd1 failed
+    exit 1                     # end script with error
+
+Read user input
+    read -rp "Your name: " name
+
+Here-doc (multi-line text)
+    cat <<EOF > config.txt
+    host=$DB_HOST
+    port=5432
+    EOF
+
+Cleanup on exit
+    trap 'rm -f /tmp/mytmp' EXIT
+
+Aliases (put in ~/.bashrc, then `source ~/.bashrc`)
+    alias ll='ls -alF'
+    alias k='kubectl'
+    alias gs='git status'
+
+Debugging scripts
+    $ bash -x script.sh        # print every command as it runs
+    $ shellcheck script.sh     # lint for common bugs (sudo apt install shellcheck)
+
+Cron (run scripts on a schedule)
+    $ crontab -e
+    # min hour day month weekday  command
+    0 2 * * *  /home/matej/backup.sh   # every day at 02:00

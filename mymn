@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+# mymn - "my manual": look up a command in ~/code/Notes/BASH1
+#
+# usage:  mymn QUERY...               mymn kubectl get
+#         mymn                        list every entry
+#         mymn -grep PATTERN          grep BASH1 (case-insensitive, line numbers)
+#
+# The leading dash is optional:       mymn -kubectl get
+
+set -euo pipefail
+
+file="$HOME/code/Notes/BASH1"
+
+usage() {
+    echo "usage: mymn QUERY...                     e.g.  mymn kubectl get"
+    echo "       mymn                              list all entries"
+    echo "       mymn -grep PATTERN [GREP FLAGS]   e.g.  mymn -grep -A3 tunnel"
+    exit 1
+}
+
+[[ "${1:-}" == "-h" || "${1:-}" == "--help" ]] && usage
+[[ -f "$file" ]] || { echo "mymn: notes file not found: $file" >&2; exit 1; }
+
+# --entries: print every entry name, one per line (used by tab completion)
+mode="show"
+[[ "${1:-}" == "--entries" ]] && { mode="entries"; shift; }
+
+# -grep: plain grep over the notes file; any extra grep flags are passed through
+if [[ "${1:-}" == "-grep" || "${1:-}" == "--grep" || "${1:-}" == "-g" ]]; then
+    shift
+    [[ $# -ge 1 ]] || usage
+    grep -in --color=auto "$@" "$file" || { echo "mymn: no lines match" >&2; exit 1; }
+    exit 0
+fi
+
+# strip the optional Dash of the first word only (-kubectl), keep flags like -t
+query="${*}"; query="${query#-}"
+
+# colors only when printing to a terminal
+if [[ -t 1 ]]; then
+    BOLD=$'\e[1;36m'; GREEN=$'\e[32m'; DIM=$'\e[2m'; YELLOW=$'\e[33m'; RESET=$'\e[0m'
+else
+    BOLD=""; GREEN=""; DIM=""; YELLOW=""; RESET=""
+fi
+
+# The file is split into entries: an entry starts at a non-indented line
+# (the command) and contains all indented lines below it. Lines between
+# "=====" bars are section titles.
+output=$(awk -v q="$query" -v mode="$mode" -v B="$BOLD" -v G="$GREEN" -v D="$DIM" -v Y="$YELLOW" -v R="$RESET" '
+function flush() {
+    sub(/\n[ \t\n]*$/, "\n", body)            # drop trailing blank lines
+    if (head != "") { n++; heads[n] = head; bodies[n] = body; secs[n] = sec }
+    head = ""; body = ""
+}
+# lowercase, turn ( ) / , | into spaces, squeeze spaces
+function norm(s) {
+    s = tolower(s)
+    gsub(/[()\/,|]/, " ", s)
+    gsub(/[ \t]+/, " ", s)
+    sub(/^ /, "", s); sub(/ $/, "", s)
+    return s
+}
+# how well does entry header h match query q: 3 exact, 2 whole words, 1 substring
+function score(h, q,    alts, i, k) {
+    k = split(tolower(h), alts, / \/ /)          # "zip / unzip" -> two names
+    for (i = 1; i <= k; i++) if (norm(alts[i]) == q) return 3
+    if (norm(h) == q) return 3
+    if (index(" " norm(h) " ", " " q " ")) return 2
+    if (index(tolower(h), q)) return 1
+    return 0
+}
+function show(i,    lines, k, j, l) {
+    printf "%s%s%s  %s[%s]%s\n", B, heads[i], R, D, secs[i], R
+    k = split(bodies[i], lines, "\n")
+    for (j = 1; j < k; j++) {
+        l = lines[j]
+        if (l ~ /^[ \t]*\$ /) {                # example line: $ cmd   # comment
+            if (match(l, /  +# /)) l = G substr(l, 1, RSTART - 1) R D substr(l, RSTART) R
+            else l = G l R
+        }
+        print l
+    }
+    print ""
+}
+
+/^====/ { flush(); insec = !insec; next }
+insec   { sec = $0; gsub(/^ +| +$/, "", sec)
+          if (++nsec == 2) n = 0              # 2nd section starts: drop the intro (title, Contents...)
+          next }
+/^[^ \t]/ { flush(); head = $0; next }
+head != "" { body = body $0 "\n" }
+
+END {
+    flush()
+    q = norm(q)
+
+    if (mode == "entries") {
+        for (i = 1; i <= n; i++) {
+            k = split(heads[i], alts, / \/ /)
+            for (j = 1; j <= k; j++) print norm(alts[j])
+        }
+        exit
+    }
+
+    if (q == "") {                             # no query: list all entries
+        for (i = 1; i <= n; i++) {
+            if (secs[i] != last) { printf "\n%s%s%s\n", Y, secs[i], R; last = secs[i] }
+            print "    " heads[i]
+        }
+        exit
+    }
+
+    best = 0
+    for (i = 1; i <= n; i++) { s[i] = score(heads[i], q); if (s[i] > best) best = s[i] }
+
+    if (best > 0) {
+        for (i = 1; i <= n; i++) if (s[i] == best) show(i)
+        for (i = 1; i <= n; i++) if (s[i] >= 2 && s[i] < best) also = also "\n    " heads[i]
+        if (also != "") printf "%sSee also:%s%s\n", Y, R, also
+        exit
+    }
+
+    # no entry is named like the query -> entries that mention it in their text
+    found = 0
+    for (i = 1; i <= n; i++) if (index(tolower(bodies[i]), q)) { show(i); found = 1 }
+    if (!found) { print "mymn: nothing found for \"" q "\"" > "/dev/stderr"; exit 1 }
+}
+' "$file")
+
+# page long output (like man does), print short output directly
+if [[ -t 1 && $(wc -l <<< "$output") -gt $(tput lines) ]]; then
+    less -R <<< "$output"
+else
+    printf '%s\n' "$output"
+fi
